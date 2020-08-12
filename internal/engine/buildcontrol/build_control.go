@@ -21,7 +21,7 @@ func NextTargetToBuild(state store.EngineState) *store.ManifestTarget {
 
 	// Local targets aren't parallelizable with any other kind of target.
 	// So if we're already building a local target, bail immediately.
-	if IsBuildingLocalTarget(state) {
+	if IsBuildingUnparallelizableLocalTarget(state) {
 		return nil
 	}
 
@@ -274,10 +274,11 @@ func IsBuildingAnything(state store.EngineState) bool {
 	return false
 }
 
-func IsBuildingLocalTarget(state store.EngineState) bool {
+func IsBuildingUnparallelizableLocalTarget(state store.EngineState) bool {
 	mts := state.Targets()
 	for _, mt := range mts {
-		if mt.State.IsBuilding() && mt.Manifest.IsLocal() {
+		if mt.State.IsBuilding() && mt.Manifest.IsLocal() &&
+			!mt.Manifest.LocalTarget().ForceParallel {
 			return true
 		}
 	}
